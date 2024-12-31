@@ -32,6 +32,8 @@ public class SecurityConfig {
         // 이 실습에서는 Login을 이용함.
         http
                 .oauth2Login((oauth2) -> oauth2
+                        // login controller로 커스텀한 로그인 페이지로 요청할 수 있도록 설정
+                        .loginPage("/login")
                         // userInfoEndpoint : 데이터를 받을 수 있는 UserDetailsService를 등록해주는 엔드포인트
                         .userInfoEndpoint((userInfoEndpointConfig) ->
                                 userInfoEndpointConfig.userService(customOauth2UserService)));  // 커스텀해둔 customOauth2UserService를 등록

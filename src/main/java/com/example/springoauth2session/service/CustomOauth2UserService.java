@@ -4,6 +4,9 @@ import com.example.springoauth2session.dto.CustomOAuth2User;
 import com.example.springoauth2session.dto.GoogleResponse;
 import com.example.springoauth2session.dto.NaverResponse;
 import com.example.springoauth2session.dto.OAuth2Response;
+import com.example.springoauth2session.entity.User;
+import com.example.springoauth2session.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -11,7 +14,10 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CustomOauth2UserService extends DefaultOAuth2UserService { // DefaultOauth2UserService는 Oauth2UserService(인터페이스)의 구현체이다.
+
+    private final UserRepository userRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -32,12 +38,33 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService { // Defau
         }
         else {
             return null;
+        }   // 여기까지 오면 naver 또는 google에서 받은 응답을 oAuth2Response에 추출한 상태.
+
+        // username은 제공자 + 공백 + 제공자ID 형태로 이루어져 있음
+        String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
+        User existData = userRepository.findByUsername(username);
+
+        String role = null;
+
+        if (existData == null) {    // 저장된 ID가 없다면 새로 생성하여 저장
+            User user = new User();
+            user.setUsername(username);
+            user.setEmail(oAuth2Response.getEmail());
+            user.setRole("ROLE_USER");
+
+            userRepository.save(user);
+        }
+        else {                    // 이미 저장된 ID가 검색된다면 새로 받은 정보로 업데이트
+
+            existData.setUsername(username);
+            existData.setEmail(oAuth2Response.getEmail());
+
+            role = existData.getRole();
+
+            userRepository.save(existData);
         }
 
-        // user role 생성 (우선 하드코딩)
-        String role = "ROLE_USER";
         return new CustomOAuth2User(oAuth2Response, role);
     }
-
 
 }
