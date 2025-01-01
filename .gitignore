@@ -38,3 +38,6 @@ out/
 
 ### application,properties ###
 /src/main/resources/application.properties
+
+### oauth2 registration ###
+/src/main/java/com/example/springoauth2session/oauth2/SocialClientRegistration.java

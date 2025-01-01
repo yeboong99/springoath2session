@@ -1,5 +1,6 @@
 package com.example.springoauth2session.config;
 
+import com.example.springoauth2session.oauth2.CustomClientRegistrationRepo;
 import com.example.springoauth2session.service.CustomOauth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomOauth2UserService customOauth2UserService;
+    private final CustomClientRegistrationRepo customClientRegistrationRepo;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,6 +36,8 @@ public class SecurityConfig {
                 .oauth2Login((oauth2) -> oauth2
                         // login controller로 커스텀한 로그인 페이지로 요청할 수 있도록 설정
                         .loginPage("/login")
+                        // 소셜로그인 설정정보(registration)를 application.properties 대신 따로 클래스를 작성하여 커스텀 관리.
+                        .clientRegistrationRepository(customClientRegistrationRepo.clientRegistrationRepository())
                         // userInfoEndpoint : 데이터를 받을 수 있는 UserDetailsService를 등록해주는 엔드포인트
                         .userInfoEndpoint((userInfoEndpointConfig) ->
                                 userInfoEndpointConfig.userService(customOauth2UserService)));  // 커스텀해둔 customOauth2UserService를 등록
